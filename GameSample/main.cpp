@@ -23,6 +23,8 @@
 #include <cmath>
 #include <DirectXMath.h>
 #include "keyboard.h"
+#include <Xinput.h>
+#pragma comment(lib, "xinput.lib")
 
 using namespace DirectX;
 /*-------------------------------------------------------------------------------
@@ -131,7 +133,13 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                 //SpriteAnim_Draw(pid03, 1024.0f, 256.0f, 128.0f, 128.0f);
                 //SpriteAnim_Draw(pid04, 1100.0f, 256.0f, 128.0f, 128.0f);
 
-            // WASDキーによる移動処理
+                XINPUT_STATE xs{};
+				XInputGetState(0, &xs); // Get the state of the first controller;
+
+                float speed = 200;
+				x += xs.Gamepad.sThumbLX / 32767.0f * speed * elapsed_time; // 左右のスティックで移動
+                y += xs.Gamepad.sThumbLY / 32767.0f * speed * elapsed_time; // 上下のスティックで移動
+                // WASDキーによる移動処理
                 if (Keyboard_IsKeyDown(KK_D)) {
                     x += (float)(100 * elapsed_time); // 右に移動
                 }
