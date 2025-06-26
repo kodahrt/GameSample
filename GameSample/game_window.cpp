@@ -8,7 +8,7 @@
 =========================================================================================*/
 #include "game_window.h"
 #include <algorithm>
-
+#include "keyboard.h"
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -77,11 +77,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
+	case WM_ACTIVATEAPP:
 	case WM_KEYDOWN:
 		if (wParam == VK_ESCAPE) {
 			SendMessage(hWnd, WM_CLOSE, 0, 0);
 		}
+	case WM_SYSKEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		Keyboard_ProcessMessage(message, wParam, lParam);
 		break;
+
 	case WM_CLOSE:
 		if (MessageBox(hWnd, "Are you sure you want to close?", "Confirm Exit", MB_OKCANCEL | MB_DEFBUTTON2) == IDOK) {
 			DestroyWindow(hWnd);

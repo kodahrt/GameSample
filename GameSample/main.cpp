@@ -22,6 +22,7 @@
 #include "polygon.h"
 #include <cmath>
 #include <DirectXMath.h>
+#include "keyboard.h"
 
 using namespace DirectX;
 /*-------------------------------------------------------------------------------
@@ -40,6 +41,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     HWND hWnd = GameWindow_Create(hInstance);
 
     SystemTimer_Initialize();
+    Keyboard_Initialize();
     Direct3D_Initialize(hWnd);
     Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
     Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
@@ -90,6 +92,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     MSG msg = {};
     float x = 0.0f;  // Initialize x
+	float y = 256.0f; // Initialize y (starting verical position)
 	float angle = 0.0f; // Initialize angle
     float runman_x = 512.0f;
     float runman_speed = -2.0f; // 每幀移動速度
@@ -128,13 +131,27 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                 //SpriteAnim_Draw(pid03, 1024.0f, 256.0f, 128.0f, 128.0f);
                 //SpriteAnim_Draw(pid04, 1100.0f, 256.0f, 128.0f, 128.0f);
 
+            // WASDキーによる移動処理
+                if (Keyboard_IsKeyDown(KK_D)) {
+                    x += (float)(100 * elapsed_time); // 右に移動
+                }
+                if (Keyboard_IsKeyDown(KK_A)) {
+                    x -= (float)(100 * elapsed_time); // 左に移動
+                }
+                if (Keyboard_IsKeyDown(KK_W)) {
+                    y -= (float)(100 * elapsed_time); // 上に移動
+                }
+                if (Keyboard_IsKeyDown(KK_S)) {
+                    y += (float)(100 * elapsed_time); // 下に移動
+                }
+
                 runman_x += runman_speed; // 向左跑
                 if (runman_x < -128.0f) runman_x = 1980.0f;
 
                 SpriteAnim_Draw(pid05, runman_x, 256.0f, 128.0f, 128.0f);
 
 				angle += elapsed_time; // Update angle based on elapsed time
-                Sprite_Draw(texid_coco, 256.0f, 256.0f, 256.0f, 256.0f, 0, 0, 32 , 32, angle);
+                Sprite_Draw(texid_coco, x, y, 256.0f, 256.0f, 0, 0, 32 , 32, angle);
 
                 float ky = sinf(angle) * 50.0f + 64.0f;
 				// angle += 0.05f; // 角度を更新

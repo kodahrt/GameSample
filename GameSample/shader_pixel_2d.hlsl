@@ -13,7 +13,7 @@ struct PS_IN
     float2 uv : TEXCOORD0;
 };
 
-Texture2D tex;     // テクスチャ
+Texture2D tex;     // ?e?N?X?`??
 SamplerState samp; //
 
 float4 main(PS_IN pi) : SV_TARGET
