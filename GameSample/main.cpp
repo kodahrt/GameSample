@@ -24,6 +24,7 @@
 #include <DirectXMath.h>
 #include "key_logger.h"
 #include "mouse.h"
+#include "game.h"
 #include <Xinput.h>
 #pragma comment(lib, "xinput.lib")
 
@@ -45,6 +46,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     SystemTimer_Initialize();
     Keyboard_Initialize();
+	KeyLogger_Initialize();
 	Mouse_Initialize(hWnd);
 
     Direct3D_Initialize(hWnd);
@@ -59,31 +61,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         L"consolab_ascii_512.png", Direct3D_GetBackBufferWidth(), Direct3D_GetBackBufferHeight(),
         0.0f, 0.0f, 
         0, 0, 
-        0.0f, 0.0f);
+        0.0f, 12.0f);
 
-    
-
-    int texid_girl = Texture_Load(L"Girl.png");
-    int texid_coco = Texture_Load(L"kokosozai.png");
-    // runningman
-	int texid_runningman = Texture_Load(L"runningman001.png");
-    int texid_white = Texture_Load(L"white.png");
-
-    int aid_rw = SpriteAnim_RegisterPattern(texid_coco, 13, 16,0.05,{ 32, 32 }, { 0, 0  });
-    int aid_lw = SpriteAnim_RegisterPattern(texid_coco, 13,16, 0.1, { 32, 32 }, { 0, 32 });
-    int aid_sm =SpriteAnim_RegisterPattern(texid_coco, 6,16, 0.1, { 32, 32 }, { 0, 32 * 2});
-    int aid_to =SpriteAnim_RegisterPattern(texid_coco, 4,16, 0.1,{ 32,32 }, { 32 * 2, 32 * 5 }, false);
-
-	int aid_rm = SpriteAnim_RegisterPattern(texid_runningman, 8, 5, 0.05, { 140,200 }, { 0,0 });
-
-	Texture_SetTexture(texid_white);
-    
-
-    int pid01 = SpriteAnim_CreatePlayer(aid_rw);
-    int pid02 = SpriteAnim_CreatePlayer(aid_sm);
-    int pid03 = SpriteAnim_CreatePlayer(aid_to);
-    int pid04 = SpriteAnim_CreatePlayer(aid_lw);
-	int pid05 = SpriteAnim_CreatePlayer(aid_rm);
+	Game_Initialize();
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
@@ -94,6 +74,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     double current_time = 0.0;
     ULONG frame_count = 0;
     double fps = 0.0;
+
 
     MSG msg = {};
     float x = 0.0f;  // Initialize x
@@ -124,73 +105,30 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                 exec_last_time = current_time;//処理した時刻を保存
 				KeyLogger_Update(); // Update keyboard state
 
-                SpriteAnim_Update(elapsed_time);
+				Game_Update(elapsed_time); // Update game logic
 
+				SpriteAnim_Update(elapsed_time); // Update sprite animations
+
+                
+                // ゲームの描画
                 Direct3D_Clear();
 
                 Sprite_Begin();
-                //Sprite_Draw(texid_girl, 0.0f, 0.0f);
-                //Sprite_Draw(texid_coco, 32.0f, 32.0f, 64.0f, 64.0f);
-                //Texture_SetTexture(texid_coco);
-                //SpriteAnim_Draw(pid01, 512.0f, 64.0f, 256.0f, 256.0f);
-                //SpriteAnim_Draw(pid02, 1024.0f, 64.0f, 256.0f, 256.0f);
-                //SpriteAnim_Draw(pid03, 1024.0f, 256.0f, 128.0f, 128.0f);
-                //SpriteAnim_Draw(pid04, 1100.0f, 256.0f, 128.0f, 128.0f);
 
-                Mouse_State ms{};
-                Mouse_GetState(&ms); // Get the current mouse state
+    //            runman_x += runman_speed; // 向左跑
+    //            if (runman_x < -128.0f) runman_x = 1980.0f;
 
-                XINPUT_STATE xs{};
-				XInputGetState(0, &xs); // Get the state of the first controller;
+    //            SpriteAnim_Draw(pid05, ms.x, ms.y, 128.0f, 128.0f);
 
-				XINPUT_VIBRATION xv{}; // 振動用の構造体
+				//angle += elapsed_time; // Update angle based on elapsed time
+    //            Sprite_Draw(texid_coco, x, y, 256.0f, 256.0f, 0, 0, 32 , 32, angle);
 
-                XINPUT_KEYSTROKE xks{};
-				XInputGetKeystroke(0, 0, &xks); // Get the keystroke state
-                float speed = 200;
+    //            float ky = sinf(angle) * 50.0f + 64.0f;
+				//// angle += 0.05f; // 角度を更新
+				//Sprite_Draw(texid_girl, 256.0f, ky, 64.0f, 64.0f);
+    //            Polygon_Draw();
 
-				// スティックの値を使って移動
-				x += (float)xs.Gamepad.sThumbLX * 0.01f * elapsed_time; // 左右のスティックで移動
-				y += (float)xs.Gamepad.sThumbLY * 0.01f * elapsed_time; // 上下のスティックで移動
-
-				Mouse_SetVisible(true); // Hide the mouse cursor
-
-                if (xs.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
-					xv.wLeftMotorSpeed = 65535; // Aボタンが押されたら左モーターを振動させる
-					xv.wRightMotorSpeed = 65535; // Aボタンが押されたら右モーターを振動させる
-					XInputSetState(0, &xv); // 振動を設定
-                }
-                else {
-					xv.wLeftMotorSpeed = 0; // Aボタンが押されていない場合は振動を止める
-					xv.wRightMotorSpeed = 0; // Aボタンが押されていない場合は振動を止める
-					XInputSetState(0, &xv); // 振動を設定
-                }
-                // WASDキーによる移動処理
-                if (KeyLogger_IsTrigger(KK_D)) {
-                    x += (float)(100 * elapsed_time); // 右に移動
-                }
-                if (KeyLogger_IsPressed(KK_A)) {
-                    x -= (float)(100 * elapsed_time); // 左に移動
-                }
-                if (KeyLogger_IsPressed(KK_W)) {
-                    y -= (float)(100 * elapsed_time); // 上に移動
-                }
-                if (KeyLogger_IsReleased(KK_S)) {
-                    y += (float)(100 * elapsed_time); // 下に移動
-                }
-
-                runman_x += runman_speed; // 向左跑
-                if (runman_x < -128.0f) runman_x = 1980.0f;
-
-                SpriteAnim_Draw(pid05, ms.x, ms.y, 128.0f, 128.0f);
-
-				angle += elapsed_time; // Update angle based on elapsed time
-                Sprite_Draw(texid_coco, x, y, 256.0f, 256.0f, 0, 0, 32 , 32, angle);
-
-                float ky = sinf(angle) * 50.0f + 64.0f;
-				// angle += 0.05f; // 角度を更新
-				Sprite_Draw(texid_girl, 256.0f, ky, 64.0f, 64.0f);
-                Polygon_Draw();
+				Game_Draw(); // Draw game content
 
 #if defined(DEBUG) || defined(_DEBUG)
                 std::stringstream ss;
@@ -207,6 +145,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         }
     }while (msg.message != WM_QUIT);
 
+	Game_Finalize();
     SpriteAnim_Finalize();
     Sprite_Finalize();
     Texture_Finalize();
