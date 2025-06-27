@@ -22,7 +22,7 @@
 #include "polygon.h"
 #include <cmath>
 #include <DirectXMath.h>
-#include "keyboard.h"
+#include "key_logger.h"
 #include "mouse.h"
 #include <Xinput.h>
 #pragma comment(lib, "xinput.lib")
@@ -122,9 +122,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
             if (elapsed_time >= (1.0 / 60.0)) {
                //if (true) {
                 exec_last_time = current_time;//処理した時刻を保存
-
-                Mouse_State ms{};
-				Mouse_GetState(&ms); // Get the current mouse state
+				KeyLogger_Update(); // Update keyboard state
 
                 SpriteAnim_Update(elapsed_time);
 
@@ -139,6 +137,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                 //SpriteAnim_Draw(pid03, 1024.0f, 256.0f, 128.0f, 128.0f);
                 //SpriteAnim_Draw(pid04, 1100.0f, 256.0f, 128.0f, 128.0f);
 
+                Mouse_State ms{};
+                Mouse_GetState(&ms); // Get the current mouse state
+
                 XINPUT_STATE xs{};
 				XInputGetState(0, &xs); // Get the state of the first controller;
 
@@ -152,7 +153,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 				x += (float)xs.Gamepad.sThumbLX * 0.01f * elapsed_time; // 左右のスティックで移動
 				y += (float)xs.Gamepad.sThumbLY * 0.01f * elapsed_time; // 上下のスティックで移動
 
-				Mouse_SetVisible(false); // Hide the mouse cursor
+				Mouse_SetVisible(true); // Hide the mouse cursor
 
                 if (xs.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
 					xv.wLeftMotorSpeed = 65535; // Aボタンが押されたら左モーターを振動させる
@@ -165,23 +166,23 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 					XInputSetState(0, &xv); // 振動を設定
                 }
                 // WASDキーによる移動処理
-                if (Keyboard_IsKeyDown(KK_D)) {
+                if (KeyLogger_IsTrigger(KK_D)) {
                     x += (float)(100 * elapsed_time); // 右に移動
                 }
-                if (Keyboard_IsKeyDown(KK_A)) {
+                if (KeyLogger_IsPressed(KK_A)) {
                     x -= (float)(100 * elapsed_time); // 左に移動
                 }
-                if (Keyboard_IsKeyDown(KK_W)) {
+                if (KeyLogger_IsPressed(KK_W)) {
                     y -= (float)(100 * elapsed_time); // 上に移動
                 }
-                if (Keyboard_IsKeyDown(KK_S)) {
+                if (KeyLogger_IsReleased(KK_S)) {
                     y += (float)(100 * elapsed_time); // 下に移動
                 }
 
                 runman_x += runman_speed; // 向左跑
                 if (runman_x < -128.0f) runman_x = 1980.0f;
 
-                SpriteAnim_Draw(pid05, runman_x, 256.0f, 128.0f, 128.0f);
+                SpriteAnim_Draw(pid05, ms.x, ms.y, 128.0f, 128.0f);
 
 				angle += elapsed_time; // Update angle based on elapsed time
                 Sprite_Draw(texid_coco, x, y, 256.0f, 256.0f, 0, 0, 32 , 32, angle);

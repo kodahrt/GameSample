@@ -25,7 +25,7 @@ static Keyboard_State gState = {};
 
 static void keyDown(int key)
 {
-    if (key < 0 || key > 0xfe) { return;  }
+    if (key < 0 || key > 0xfe) { return; }
 
     unsigned int* p = (unsigned int*)&gState;
     unsigned int bf = 1u << (key & 0x1f);
@@ -51,6 +51,7 @@ void Keyboard_Initialize(void)
 
 bool Keyboard_IsKeyDown(Keyboard_Keys key, const Keyboard_State* pState)
 {
+    BYTE k = (BYTE)key;
     if (key <= 0xfe)
     {
         unsigned int* p = (unsigned int*)pState;
