@@ -22,7 +22,7 @@
 
 
 // ƒL[—ñ‹“
-typedef enum Keyboard_Keys_tag
+typedef enum Keyboard_Keys_tag : unsigned char
 {
     KK_NONE               = 0x0,
                             

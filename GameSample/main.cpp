@@ -23,6 +23,7 @@
 #include <cmath>
 #include <DirectXMath.h>
 #include "keyboard.h"
+#include "mouse.h"
 #include <Xinput.h>
 #pragma comment(lib, "xinput.lib")
 
@@ -44,6 +45,8 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     SystemTimer_Initialize();
     Keyboard_Initialize();
+	Mouse_Initialize(hWnd);
+
     Direct3D_Initialize(hWnd);
     Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
     Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetDeviceContext());
@@ -120,6 +123,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                //if (true) {
                 exec_last_time = current_time;//処理した時刻を保存
 
+                Mouse_State ms{};
+				Mouse_GetState(&ms); // Get the current mouse state
+
                 SpriteAnim_Update(elapsed_time);
 
                 Direct3D_Clear();
@@ -136,9 +142,28 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                 XINPUT_STATE xs{};
 				XInputGetState(0, &xs); // Get the state of the first controller;
 
+				XINPUT_VIBRATION xv{}; // 振動用の構造体
+
+                XINPUT_KEYSTROKE xks{};
+				XInputGetKeystroke(0, 0, &xks); // Get the keystroke state
                 float speed = 200;
-				x += xs.Gamepad.sThumbLX / 32767.0f * speed * elapsed_time; // 左右のスティックで移動
-                y += xs.Gamepad.sThumbLY / 32767.0f * speed * elapsed_time; // 上下のスティックで移動
+
+				// スティックの値を使って移動
+				x += (float)xs.Gamepad.sThumbLX * 0.01f * elapsed_time; // 左右のスティックで移動
+				y += (float)xs.Gamepad.sThumbLY * 0.01f * elapsed_time; // 上下のスティックで移動
+
+				Mouse_SetVisible(false); // Hide the mouse cursor
+
+                if (xs.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+					xv.wLeftMotorSpeed = 65535; // Aボタンが押されたら左モーターを振動させる
+					xv.wRightMotorSpeed = 65535; // Aボタンが押されたら右モーターを振動させる
+					XInputSetState(0, &xv); // 振動を設定
+                }
+                else {
+					xv.wLeftMotorSpeed = 0; // Aボタンが押されていない場合は振動を止める
+					xv.wRightMotorSpeed = 0; // Aボタンが押されていない場合は振動を止める
+					XInputSetState(0, &xv); // 振動を設定
+                }
                 // WASDキーによる移動処理
                 if (Keyboard_IsKeyDown(KK_D)) {
                     x += (float)(100 * elapsed_time); // 右に移動
@@ -187,6 +212,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Shader_Finalize();
     Direct3D_Finalize();
 	Polygon_Finalize();
+	Mouse_Finalize();
 
     CoUninitialize();
     return (int)msg.wParam;
