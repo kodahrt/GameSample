@@ -1,6 +1,6 @@
 /*==============================================================================
 
-   プレイヤー [player.h]
+   プレイヤー [player.cpp]
 														 Author : LCH
 														 Date   : 2025/06/27
 --------------------------------------------------------------------------------
@@ -12,6 +12,9 @@ using namespace DirectX;
 #include "sprite.h"
 #include "texture.h"
 #include "key_logger.h"	
+#include "bullet.h"
+#include "direct3d.h"
+#include "debug_ostream.h"
 
 static XMFLOAT2 g_PlayerPosition{};
 static XMFLOAT2 g_PlayerVelocity{}; // プレイヤーの速度
@@ -55,16 +58,38 @@ void Player_Update(double elapsed_time)
 
 	direction = XMVector2Normalize(direction); // 正規化して方向ベクトルを取得
 
-	velocity += direction * 100.0f * elapsed_time; // 速度を更新
+	velocity += direction * 2.0f; // 速度を更新
 
 	position += velocity;
 
-	velocity *= 0.95f; // 摩擦を模擬するために速度を減衰
+	velocity *= 0.9f; // 摩擦を模擬するために速度を減衰
+
+	// 画面の端で反転する処理
+	//if (XMVectorGetX(position) < 0.0f) {
+	//	position = XMVectorSet(0.0f, XMVectorGetY(position), 0.0f, 0.0f); // 左端で反転
+	//	velocity = XMVectorSet(-XMVectorGetX(velocity), XMVectorGetY(velocity), 0.0f, 0.0f);
+	//}
+	//else if (XMVectorGetX(position) > Direct3D_GetBackBufferWidth() - 32.0f) {
+	//	position = XMVectorSet(Direct3D_GetBackBufferWidth() - 32.0f, XMVectorGetY(position), 0.0f, 0.0f); // 右端で反転
+	//	velocity = XMVectorSet(-XMVectorGetX(velocity), XMVectorGetY(velocity), 0.0f, 0.0f);
+	//}
+
+// ======================================================================================================================
+
+	//velocity += direction * 6000000.0f / 2500.0f * elapsed_time; // 速度を更新
+
+	//position += velocity * elapsed_time;
+
+	//velocity += -velocity * 4.0f * elapsed_time; // 摩擦を模擬するために速度を減衰
+	
+// ======================================================================================================================
 	// 画面の端で反転する処理 
 	XMStoreFloat2(&g_PlayerPosition, position);
-	XMStoreFloat2(&g_PlayerVelocity, position);
+	XMStoreFloat2(&g_PlayerVelocity, velocity);
 
-
+	if (KeyLogger_IsPressed(KK_SPACE)) {
+		Bullet_Create({ g_PlayerPosition.x + 100.0f , g_PlayerPosition.y + 50.0f });
+	}
 }
 
 void Player_Draw()

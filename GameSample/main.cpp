@@ -61,7 +61,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         L"consolab_ascii_512.png", Direct3D_GetBackBufferWidth(), Direct3D_GetBackBufferHeight(),
         0.0f, 0.0f, 
         0, 0, 
-        0.0f, 12.0f);
+        0.0f, 16.0f);
 
 	Game_Initialize();
 
