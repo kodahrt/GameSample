@@ -116,6 +116,7 @@ void Enemy_Create(EnemyTypeID id, const DirectX::XMFLOAT2& position)
 			e.offsetY = position.y; // Yオフセットを初期化
 			e.velocity = { -200.0f, 0.0f }; // 左方向に移動
 			e.isEnabled = true; // 敵を有効化
+			e.hp = g_EnemyTypes[e.typeId].hp; // 敵のHPを設定
 			break; // 最初の無効な敵を見つけたら終了
 		}
 	}
