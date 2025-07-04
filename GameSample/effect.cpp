@@ -36,7 +36,7 @@ void Effect_Initialize()
 	g_EffectTexId = Texture_Load(L"Explosion.png"); // 弾のテクスチャを読み込む
 	g_AnimPatternId = SpriteAnim_RegisterPattern(
 		g_EffectTexId, 16, 4, // パターンの横と縦の数
-		0.05, // 1フレームあたりの秒数
+		0.1, // 1フレームあたりの秒数
 		{ 256, 256 }, // パターンのサイズ
 		{ 0, 0 }, // 開始位置
 		false // ループするかどうか

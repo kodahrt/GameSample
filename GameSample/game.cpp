@@ -85,6 +85,7 @@ void hitJudgmentPlayertVSEnemy()
 			// プレイヤーと敵が衝突した場合の処理
 			Player_Destroy(); // プレイヤーを破壊
 			Enemy_Destroy(ei); // 敵を破壊
+			Effect_Create(Enemy_GetCollision(ei).center); // エフェクトを生成
 		}
 	}
     
