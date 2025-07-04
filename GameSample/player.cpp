@@ -15,10 +15,15 @@ using namespace DirectX;
 #include "bullet.h"
 #include "direct3d.h"
 #include "debug_ostream.h"
+#include "collision.h"
 
 static XMFLOAT2 g_PlayerPosition{};
 static XMFLOAT2 g_PlayerVelocity{}; // プレイヤーの速度
 static int g_PlayerTexId = -1; // プレイヤーのテクスチャID;
+static constexpr Circle g_PlayerCollision = { {32.0f, 32.0f}, 32.0f }; // プレイヤーの衝突判定用の円
+static bool g_PlayerEnable = true; // プレイヤーが有効かどうか
+
+
 
 void Player_Initialize(const XMFLOAT2& position)
 {
@@ -28,6 +33,7 @@ void Player_Initialize(const XMFLOAT2& position)
 	g_PlayerVelocity = { 0.0f, 0.0f }; // 初期速度はゼロ
 	// プレイヤーのテクスチャを読み込む
 	g_PlayerTexId = Texture_Load(L"kokosozai.png");
+	g_PlayerEnable = true; // プレイヤーを有効化
 }
 
 void Player_Finalize()
@@ -38,6 +44,8 @@ void Player_Finalize()
 // プレイヤーの更新処理
 void Player_Update(double elapsed_time)
 {
+	if (!g_PlayerEnable) return; // プレイヤーが無効な場合は描画しない
+
 	XMVECTOR position = XMLoadFloat2(&g_PlayerPosition);
 	XMVECTOR velocity = XMLoadFloat2(&g_PlayerVelocity);
 	
@@ -87,16 +95,45 @@ void Player_Update(double elapsed_time)
 	XMStoreFloat2(&g_PlayerPosition, position);
 	XMStoreFloat2(&g_PlayerVelocity, velocity);
 
-	if (KeyLogger_IsPressed(KK_SPACE)) {
+	if (KeyLogger_IsTrigger(KK_SPACE)) {
 		Bullet_Create({ g_PlayerPosition.x + 100.0f , g_PlayerPosition.y + 50.0f });
+	}
+
+	// 画面外に出たら位置をリセット
+	if (g_PlayerPosition.x < 0.0f) {
+		g_PlayerPosition.x = 0.0f; // 左端で位置をリセット
+	}
+	else if (g_PlayerPosition.x > Direct3D_GetBackBufferWidth() - 32.0f) {
+		g_PlayerPosition.x = Direct3D_GetBackBufferWidth() - 32.0f; // 右端で位置をリセット
 	}
 }
 
 void Player_Draw()
 {
+	if (!g_PlayerEnable) return; // プレイヤーが無効な場合は描画しない
+
+	// プレイヤーの描画処理をここに記述
 	Sprite_Draw(g_PlayerTexId,
 		g_PlayerPosition.x, g_PlayerPosition.y,
 		128.0f, 128.0f,
 		0.0f, 0.0f,
 		32.0f, 32.0f);
+}
+
+bool Player_IsEnable()
+{
+	return g_PlayerEnable;
+}
+
+Circle Player_GetCollision()
+{
+	float cx = g_PlayerPosition.x + g_PlayerCollision.center.x;
+	float cy = g_PlayerPosition.y + g_PlayerCollision.center.y;
+	
+	return { {cx, cy}, g_PlayerCollision.radius }; // プレイヤーの衝突判定用の円を返す
+}
+
+void Player_Destroy()
+{
+	g_PlayerEnable = false; // プレイヤーを無効化
 }

@@ -12,6 +12,7 @@
 #include "direct3d.h"
 #include "sprite.h"
 #include "texture.h"
+#include "collision.h"
 using namespace DirectX;
 
 struct Bullet
@@ -20,10 +21,10 @@ struct Bullet
 	XMFLOAT2 velocity{}; // 弾の速度
 	bool isEnabled; // 弾が有効かどうか
 	double life_time; // 弾のライフタイム
+	Circle collision; // 弾の衝突判定用の円
 };
 
 // BULLET MAX
-static constexpr unsigned int BULLET_MAX = 1024; // 弾の最大数
 static Bullet g_Bullets[BULLET_MAX]{}; // 弾の配列
 static int g_BulletTexId = -1;
 
@@ -105,7 +106,27 @@ void Bullet_Create(const DirectX::XMFLOAT2& position)
             b.life_time = 0.0; // ライフタイムを設定  
             b.position = position; // 弾の初期位置を設定  
             b.velocity = DirectX::XMFLOAT2(200.0f, 0.0f); // 上方向に発射する速度を設定  
+			b.collision = { {16.0f, 16.0f}, 16.0f }; // 衝突判定用の円を設定
             break;  
         }  
     }  
 }
+
+bool Bullet_IsEnable(int index)
+{
+
+	return g_Bullets[index].isEnabled;
+}
+
+Circle Bullet_GetCollision(int index)
+{
+	float cx = g_Bullets[index].position.x + g_Bullets[index].collision.center.x;
+	float cy = g_Bullets[index].position.y + g_Bullets[index].collision.center.y;
+	return { {cx, cy }, g_Bullets[index].collision.radius};
+}
+
+void Bullet_Destroy(int index)
+{
+	g_Bullets[index].isEnabled = false; // 弾を無効化
+}
+
