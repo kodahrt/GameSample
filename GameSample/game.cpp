@@ -4,6 +4,7 @@
 #include "bullet.h"
 #include "enemy.h"
 #include "enemy_spawner.h"
+#include "effect.h"
 
 static double g_Time = 0.0; // 最後に実行した時刻
 static double g_CreateTime = 0.0;
@@ -44,6 +45,8 @@ void Game_Update(double elapsed_time)
 
 	hitJudgmentBulletVSEnemy(); // 弾と敵の衝突判定を行う
 	hitJudgmentPlayertVSEnemy(); // プレイヤーと敵の衝突判定を行う
+
+	Effect_Update(elapsed_time); // エフェクトの更新処理を呼び出す
 }
 
 void Game_Draw()
@@ -52,6 +55,7 @@ void Game_Draw()
 	Enemy_Draw();
 	Bullet_Draw(); 
 	Player_Draw();
+	Effect_Draw(); // エフェクトの描画処理を呼び出す
 }
 
 void hitJudgmentBulletVSEnemy()

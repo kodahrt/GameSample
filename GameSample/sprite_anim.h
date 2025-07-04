@@ -24,4 +24,7 @@ int SpriteAnim_RegisterPattern(
 
 int SpriteAnim_CreatePlayer(int anim_pattern_id);
 
+bool SpriteAnim_IsStopped(int index);
+void SpriteAnim_DestroyPlayer(int index);
+
 #endif //SPRITE_ANIM_H

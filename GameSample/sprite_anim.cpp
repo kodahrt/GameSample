@@ -28,6 +28,7 @@ struct AnimPlayData
 	int m_PatternId = -1;
 	int m_PatternNum = 0; //patternNumbers
 	double m_AccumulatedTime = 0.0; //Cumulative time
+	bool m_IsStopped = false; // Is stopped
 };
 
 static constexpr int ANIM_PATTERN_MAX = 128;
@@ -43,6 +44,7 @@ void SpriteAnim_Initialize()
 
 	for (AnimPlayData& data : g_AnimPlay) {
 		data.m_PatternId = -1;
+		data.m_IsStopped = false;
 	}
 }
 	void SpriteAnim_Finalize()
@@ -69,6 +71,7 @@ void SpriteAnim_Initialize()
 					else 
 {
 						g_AnimPlay[i].m_PatternNum = pAnimPatternData->m_PatternMax - 1;
+						g_AnimPlay[i].m_IsStopped = true; // Stop the animation
 					}
 				}
 
@@ -130,6 +133,16 @@ void SpriteAnim_Initialize()
 			return i;
 		}
 		return -1;
+	}
+
+	bool SpriteAnim_IsStopped(int index)
+	{
+		return g_AnimPlay[index].m_IsStopped;
+	}
+
+	void SpriteAnim_DestroyPlayer(int index)
+	{
+		g_AnimPlay[index].m_PatternId = -1; // –³Œø‰»
 	}
 
 

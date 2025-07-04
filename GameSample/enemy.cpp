@@ -12,6 +12,7 @@
 #include "sprite.h"
 using namespace DirectX;
 #include "collision.h"
+#include "effect.h"
 
 struct EnemyType
 {
@@ -32,6 +33,7 @@ struct Enemy
 	float offsetY; // 敵のYオフセット（アニメーション用など）
 	double lifeTime; // 敵のライフタイム
 	bool isEnabled; // 敵が有効かどうか
+	bool isDameged; // 敵がダメージを受けたかどうか
 
 	Circle collision; // 敵の衝突判定用の円
 
@@ -54,9 +56,9 @@ void Enemy_Initialize()
    for (Enemy& e : g_Enemies) {  
        e.isEnabled = false; // 初期化時は全て無効  
    }  
-   //g_EnemyTypes[0].texId = Texture_Load(L"enemy.png"); // 弾のテクスチャを読み込む  
-   //g_EnemyTypes[1].texId = Texture_Load(L"enemy.png"); // 弾のテクスチャを読み込む  
-   g_EnemyTexId = Texture_Load(L"enemy.png"); // 敵のテクスチャを読み込む
+   g_EnemyTypes[0].texId = Texture_Load(L"enemy.png"); // 弾のテクスチャを読み込む  
+   g_EnemyTypes[1].texId = Texture_Load(L"enemy.png"); // 弾のテクスチャを読み込む  
+   // g_EnemyTexId = Texture_Load(L"enemy.png"); // 敵のテクスチャを読み込む
 }
 
 void Enemy_Finalize()
@@ -74,7 +76,7 @@ void Enemy_Update(double elapsed_time)
 		case ENEMY_TYPE_2SHOT:
 			// 2WAY弾の処理
 			e.position.x += e.velocity.x * elapsed_time;
-			e.position.y = e.offsetY * sinf(e.lifeTime) * 100.0f; // Y軸のオフセットをサイン波で更新
+			e.position.y = e.offsetY * sin(e.lifeTime) * 100.0f; // Y軸のオフセットをサイン波で更新
 			break;
 		case ENEMY_TYPE_NORMAL:
 			XMVECTOR position = XMLoadFloat2(&e.position);
@@ -102,7 +104,8 @@ void Enemy_Draw()
 {
 	for (Enemy& e : g_Enemies) {
 		if (!e.isEnabled) continue; // 弾が無効な場合はスキップ
-		Sprite_Draw(g_EnemyTexId, e.position.x, e.position.y, ENEMY_WIDTH, ENEMY_HEIGHT);
+		Sprite_Draw(g_EnemyTypes[e.typeId].texId, e.position.x, e.position.y, ENEMY_WIDTH, ENEMY_HEIGHT,
+		e.isDameged ? XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f} : XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f});
 	};
 }
 
@@ -117,6 +120,7 @@ void Enemy_Create(EnemyTypeID id, const DirectX::XMFLOAT2& position)
 			e.velocity = { -200.0f, 0.0f }; // 左方向に移動
 			e.isEnabled = true; // 敵を有効化
 			e.hp = g_EnemyTypes[e.typeId].hp; // 敵のHPを設定
+			e.isDameged = false; // 敵のダメージ状態を初期化
 			break; // 最初の無効な敵を見つけたら終了
 		}
 	}
@@ -131,12 +135,12 @@ Circle Enemy_GetCollision(int index)
 {
 	Enemy& e = g_Enemies[index]; // 敵の情報を取得
 	int id = g_Enemies[index].typeId; // 敵のタイプIDを取得
-	//float cx = g_Enemies[index].position.x + g_EnemyTypes[id].collision.center.x; // 敵の中心X座標
-	//float cy = g_Enemies[index].position.y + g_EnemyTypes[id].collision.center.y; // 敵の中心Y座標
-	float cx = e.position.x + e.collision.center.x; // 敵の中心X座標
-	float cy = e.position.y + e.collision.center.y; // 敵の中心X座標
+	float cx = g_Enemies[index].position.x + g_EnemyTypes[id].collision.center.x; // 敵の中心X座標
+	float cy = g_Enemies[index].position.y + g_EnemyTypes[id].collision.center.y; // 敵の中心Y座標
+	//float cx = e.position.x + e.collision.center.x; // 敵の中心X座標
+	//float cy = e.position.y + e.collision.center.y; // 敵の中心X座標
 
-	return { { cx, cy }, e.collision.radius }; // 敵の衝突判定用の円を返す
+	return { { cx, cy }, g_Enemies[index].collision.radius }; // 敵の衝突判定用の円を返す
 
 }
 
@@ -148,9 +152,11 @@ void Enemy_Destroy(int index)
 void Enemy_Damege(int index)
 {
 	g_Enemies[index].hp--;
+	g_Enemies[index].isDameged = true; // 敵がダメージを受けた状態にする
 
 	if (g_Enemies[index].hp <= 0) {
 		Enemy_Destroy(index); // HPが0以下になったら敵を破壊
+		Effect_Create(g_Enemies[index].position, g_EnemyTexId); // 敵の位置にエフェクトを生成
 	}
 }
 
